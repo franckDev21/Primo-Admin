@@ -29,6 +29,8 @@ export interface Question {
   difficulty: number; // 1-6
   type: 'QCM' | 'AUDIO' | 'IMAGE';
   points: 3 | 9 | 15 | 21 | 26 | 33;
+  choices?: string[]; // Array of 4 choices
+  correctAnswer?: number; // Index of the correct choice (0-3)
 }
 
 export interface User {

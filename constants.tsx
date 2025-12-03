@@ -54,14 +54,83 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
 ];
 
 export const MOCK_QUESTIONS: Question[] = [
-  { id: 'q1', text: 'Quelle est l\'intention de l\'auteur ?', moduleId: 'CE', seriesId: 's1', difficulty: 4, type: 'QCM', points: 15 },
-  { id: 'q2', text: 'Complétez la phrase suivante...', moduleId: 'CE', seriesId: 's1', difficulty: 2, type: 'QCM', points: 9 },
-  { id: 'q3', text: 'Écoutez le dialogue. Où se passe la scène ?', moduleId: 'CO', seriesId: 's4', difficulty: 3, type: 'AUDIO', points: 9 },
-  { id: 'q4', text: 'Décrivez cette image.', moduleId: 'EO', seriesId: 's6', difficulty: 1, type: 'IMAGE', points: 3 },
-  { id: 'q5', text: 'Rédigez un courriel de réclamation.', moduleId: 'EE', seriesId: 's6', difficulty: 5, type: 'QCM', points: 26 },
-  // Adding more questions for Series 1 (CE)
-  { id: 'q6', text: 'Quel est le synonyme du mot souligné ?', moduleId: 'CE', seriesId: 's1', difficulty: 1, type: 'QCM', points: 3 },
-  { id: 'q7', text: 'Que signifie cette expression ?', moduleId: 'CE', seriesId: 's1', difficulty: 3, type: 'QCM', points: 9 },
+  { 
+    id: 'q1', 
+    text: 'Quelle est l\'intention de l\'auteur ?', 
+    moduleId: 'CE', 
+    seriesId: 's1', 
+    difficulty: 4, 
+    type: 'QCM', 
+    points: 15,
+    choices: ['Informer', 'Convaincre', 'Divertir', 'Critiquer'],
+    correctAnswer: 1
+  },
+  { 
+    id: 'q2', 
+    text: 'Complétez la phrase suivante...', 
+    moduleId: 'CE', 
+    seriesId: 's1', 
+    difficulty: 2, 
+    type: 'QCM', 
+    points: 9,
+    choices: ['est allé', 'a allé', 'suis allé', 'vont'],
+    correctAnswer: 0
+  },
+  { 
+    id: 'q3', 
+    text: 'Écoutez le dialogue. Où se passe la scène ?', 
+    moduleId: 'CO', 
+    seriesId: 's4', 
+    difficulty: 3, 
+    type: 'AUDIO', 
+    points: 9,
+    choices: ['À la gare', 'Au restaurant', 'À la banque', 'Au cinéma'],
+    correctAnswer: 2
+  },
+  { 
+    id: 'q4', 
+    text: 'Décrivez cette image.', 
+    moduleId: 'EO', 
+    seriesId: 's6', 
+    difficulty: 1, 
+    type: 'IMAGE', 
+    points: 3,
+    choices: [],
+    correctAnswer: 0
+  },
+  { 
+    id: 'q5', 
+    text: 'Rédigez un courriel de réclamation.', 
+    moduleId: 'EE', 
+    seriesId: 's6', 
+    difficulty: 5, 
+    type: 'QCM', 
+    points: 26,
+    choices: ['Option A', 'Option B', 'Option C', 'Option D'],
+    correctAnswer: 0
+  },
+  { 
+    id: 'q6', 
+    text: 'Quel est le synonyme du mot souligné ?', 
+    moduleId: 'CE', 
+    seriesId: 's1', 
+    difficulty: 1, 
+    type: 'QCM', 
+    points: 3,
+    choices: ['Grand', 'Petit', 'Rapide', 'Lent'],
+    correctAnswer: 0
+  },
+  { 
+    id: 'q7', 
+    text: 'Que signifie cette expression ?', 
+    moduleId: 'CE', 
+    seriesId: 's1', 
+    difficulty: 3, 
+    type: 'QCM', 
+    points: 9,
+    choices: ['Être heureux', 'Être triste', 'Être en colère', 'Être fatigué'],
+    correctAnswer: 3
+  },
 ];
 
 export const MOCK_PLANS: SubscriptionPlan[] = [

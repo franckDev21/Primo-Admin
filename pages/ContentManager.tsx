@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import GlassCard from '../components/GlassCard';
 import Modal from '../components/Modal';
 import { MOCK_MODULES, MOCK_QUESTIONS, MOCK_SERIES } from '../constants';
-import { Plus, Search, Filter, Edit2, Trash2, PlayCircle, Image as ImageIcon, Layers, Lock, Unlock, ArrowRight, ArrowLeft, MoreHorizontal, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, Search, Filter, Edit2, Trash2, PlayCircle, Image as ImageIcon, Layers, Lock, Unlock, ArrowRight, ArrowLeft, MoreHorizontal, CheckCircle, AlertCircle, Save, Check } from 'lucide-react';
 import { ModuleType, Series, Question } from '../types';
 
 const ContentManager: React.FC = () => {
@@ -11,10 +11,22 @@ const ContentManager: React.FC = () => {
   const [selectedSeriesId, setSelectedSeriesId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // State for data (using Mock as initial)
+  const [allQuestions, setAllQuestions] = useState<Question[]>(MOCK_QUESTIONS);
+  
   // Modal States
   const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  
+  // Form States
   const [seriesFormData, setSeriesFormData] = useState<Partial<Series>>({});
+  const [questionFormData, setQuestionFormData] = useState<Partial<Question>>({
+      choices: ['', '', '', ''],
+      correctAnswer: 0,
+      points: 3,
+      difficulty: 1,
+      type: 'QCM'
+  });
 
   // Derived Data
   const currentModule = MOCK_MODULES.find(m => m.code === activeTab);
@@ -22,7 +34,7 @@ const ContentManager: React.FC = () => {
   
   const selectedSeries = selectedSeriesId ? MOCK_SERIES.find(s => s.id === selectedSeriesId) : null;
   const questionsList = selectedSeriesId 
-    ? MOCK_QUESTIONS.filter(q => q.seriesId === selectedSeriesId && q.text.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? allQuestions.filter(q => q.seriesId === selectedSeriesId && q.text.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
 
   const handleCreateSeries = () => {
@@ -37,6 +49,39 @@ const ContentManager: React.FC = () => {
     setIsSeriesModalOpen(true);
   };
 
+  const handleCreateQuestion = () => {
+      setQuestionFormData({
+        text: '',
+        moduleId: activeTab,
+        seriesId: selectedSeriesId || '',
+        difficulty: 1,
+        type: 'QCM',
+        points: 3,
+        choices: ['', '', '', ''],
+        correctAnswer: 0
+      });
+      setIsQuestionModalOpen(true);
+  };
+
+  const handleSaveQuestion = () => {
+      if (!questionFormData.text) return;
+      
+      const newQuestion: Question = {
+          id: `q_${Date.now()}`,
+          text: questionFormData.text || '',
+          moduleId: activeTab,
+          seriesId: selectedSeriesId || '',
+          difficulty: questionFormData.difficulty || 1,
+          type: questionFormData.type || 'QCM',
+          points: questionFormData.points || 3,
+          choices: questionFormData.choices,
+          correctAnswer: questionFormData.correctAnswer
+      };
+
+      setAllQuestions([...allQuestions, newQuestion]);
+      setIsQuestionModalOpen(false);
+  };
+
   const handleEditSeries = (series: Series, e: React.MouseEvent) => {
       e.stopPropagation();
       setSeriesFormData(series);
@@ -46,6 +91,12 @@ const ContentManager: React.FC = () => {
   const handleBackToSeries = () => {
       setSelectedSeriesId(null);
       setSearchTerm('');
+  };
+
+  const updateChoice = (index: number, value: string) => {
+      const newChoices = [...(questionFormData.choices || [])];
+      newChoices[index] = value;
+      setQuestionFormData({ ...questionFormData, choices: newChoices });
   };
 
   const getDifficultyColor = (diff: number) => {
@@ -76,7 +127,7 @@ const ContentManager: React.FC = () => {
         <div className="flex gap-3">
           {selectedSeriesId ? (
             <button 
-                onClick={() => setIsQuestionModalOpen(true)}
+                onClick={handleCreateQuestion}
                 className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
             >
                 <Plus size={16} /> Ajouter Question
@@ -405,19 +456,105 @@ const ContentManager: React.FC = () => {
          title="Ajouter une question"
       >
           <div className="space-y-4">
-              <p className="text-sm text-slate-500">Formulaire complet de création de question ici...</p>
-              {/* Simplified mock form */}
+              {/* Question Text */}
               <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Intitulé</label>
-                  <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 rounded-lg p-2.5 outline-none" />
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Intitulé de la question</label>
+                  <textarea 
+                    value={questionFormData.text}
+                    onChange={(e) => setQuestionFormData({...questionFormData, text: e.target.value})}
+                    placeholder="Entrez le texte de la question ici..."
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 resize-none h-24 text-slate-900 dark:text-white"
+                  />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                  <button className="p-4 border rounded-lg text-center hover:bg-slate-50 dark:hover:bg-white/5">QCM Standard</button>
-                  <button className="p-4 border rounded-lg text-center hover:bg-slate-50 dark:hover:bg-white/5">Audio + QCM</button>
+
+              {/* Settings Row */}
+              <div className="grid grid-cols-3 gap-3">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Type</label>
+                    <select 
+                        value={questionFormData.type}
+                        onChange={(e) => setQuestionFormData({...questionFormData, type: e.target.value as any})}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 rounded-lg p-2 text-sm text-slate-900 dark:text-white outline-none"
+                    >
+                        <option value="QCM">QCM</option>
+                        <option value="AUDIO">Audio</option>
+                        <option value="IMAGE">Image</option>
+                    </select>
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Points</label>
+                    <select 
+                        value={questionFormData.points}
+                        onChange={(e) => setQuestionFormData({...questionFormData, points: Number(e.target.value) as any})}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 rounded-lg p-2 text-sm text-slate-900 dark:text-white outline-none"
+                    >
+                        <option value={3}>3 pts</option>
+                        <option value={9}>9 pts</option>
+                        <option value={15}>15 pts</option>
+                        <option value={21}>21 pts</option>
+                        <option value={26}>26 pts</option>
+                        <option value={33}>33 pts</option>
+                    </select>
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Difficulté</label>
+                    <select 
+                        value={questionFormData.difficulty}
+                        onChange={(e) => setQuestionFormData({...questionFormData, difficulty: Number(e.target.value)})}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 rounded-lg p-2 text-sm text-slate-900 dark:text-white outline-none"
+                    >
+                        {[1,2,3,4,5,6].map(lvl => (
+                            <option key={lvl} value={lvl}>Niveau {lvl}</option>
+                        ))}
+                    </select>
+                 </div>
               </div>
-              <div className="flex justify-end gap-3 pt-4">
-                   <button onClick={() => setIsQuestionModalOpen(false)} className="px-4 py-2 text-sm text-slate-500">Annuler</button>
-                   <button onClick={() => setIsQuestionModalOpen(false)} className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg">Créer</button>
+
+              {/* Choices & Response Section */}
+              <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Réponses possibles (Cochez la bonne réponse)</label>
+                  <div className="grid grid-cols-1 gap-3">
+                      {questionFormData.choices?.map((choice, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                              <button 
+                                onClick={() => setQuestionFormData({...questionFormData, correctAnswer: idx})}
+                                className={`w-10 h-10 rounded-lg flex items-center justify-center border-2 transition-all ${
+                                    questionFormData.correctAnswer === idx 
+                                    ? 'bg-emerald-500 border-emerald-500 text-white' 
+                                    : 'border-slate-300 dark:border-white/10 text-slate-400 hover:border-slate-400'
+                                }`}
+                              >
+                                  {questionFormData.correctAnswer === idx ? <Check size={20} /> : <span className="text-sm font-bold">{['A','B','C','D'][idx]}</span>}
+                              </button>
+                              <input 
+                                type="text" 
+                                value={choice}
+                                onChange={(e) => updateChoice(idx, e.target.value)}
+                                placeholder={`Option ${['A','B','C','D'][idx]}`}
+                                className={`flex-1 bg-slate-50 dark:bg-slate-950 border rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 ${
+                                    questionFormData.correctAnswer === idx 
+                                    ? 'border-emerald-500/50 focus:ring-emerald-500/20' 
+                                    : 'border-slate-300 dark:border-white/10 focus:ring-indigo-500'
+                                }`}
+                              />
+                          </div>
+                      ))}
+                  </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10 mt-2">
+                   <button 
+                    onClick={() => setIsQuestionModalOpen(false)} 
+                    className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                   >
+                    Annuler
+                   </button>
+                   <button 
+                    onClick={handleSaveQuestion} 
+                    className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+                   >
+                    <Save size={16} /> Enregistrer Question
+                   </button>
               </div>
           </div>
       </Modal>
