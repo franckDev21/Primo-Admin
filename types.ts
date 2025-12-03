@@ -1,3 +1,4 @@
+
 export type ModuleType = 'CE' | 'CO' | 'EE' | 'EO';
 
 export interface TCFModule {
@@ -9,10 +10,22 @@ export interface TCFModule {
   durationMinutes: number;
 }
 
+export interface Series {
+  id: string;
+  moduleId: ModuleType;
+  title: string;
+  description?: string;
+  questionCount: number;
+  isPremium: boolean;
+  isActive: boolean;
+  lastUpdated: string;
+}
+
 export interface Question {
   id: string;
   text: string;
   moduleId: ModuleType;
+  seriesId: string; // Linked to a specific series
   difficulty: number; // 1-6
   type: 'QCM' | 'AUDIO' | 'IMAGE';
   points: 3 | 9 | 15 | 21 | 26 | 33;
@@ -55,4 +68,25 @@ export interface SubscriptionPlan {
   features: string[];
   active: boolean;
   highlight?: boolean; // For "Popular" tag in front office
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  sender: 'admin' | 'user';
+  timestamp: string;
+  read: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  avatar?: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  status: 'active' | 'closed';
+  messages: ChatMessage[];
 }

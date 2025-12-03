@@ -1,3 +1,4 @@
+
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -5,12 +6,14 @@ import {
   CreditCard, 
   Settings, 
   FileAudio,
-  Activity
+  Activity,
+  MessageSquare
 } from 'lucide-react';
-import { TCFModule, User, Transaction, Question, SubscriptionPlan } from './types';
+import { TCFModule, User, Transaction, Question, SubscriptionPlan, Conversation, Series } from './types';
 
 export const NAV_ITEMS = [
   { label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, path: '/' },
+  { label: 'Messages', icon: <MessageSquare size={20} />, path: '/messages' },
   { label: 'Gestion Contenu', icon: <BookOpen size={20} />, path: '/content' },
   { label: 'Utilisateurs', icon: <Users size={20} />, path: '/users' },
   { label: 'Finance & Abos', icon: <CreditCard size={20} />, path: '/finance' },
@@ -24,6 +27,15 @@ export const MOCK_MODULES: TCFModule[] = [
   { id: '2', name: 'Compréhension Écrite', code: 'CE', description: 'Lecture et textes à trous', questionCount: 39, durationMinutes: 60 },
   { id: '3', name: 'Expression Écrite', code: 'EE', description: 'Rédaction de tâches', questionCount: 3, durationMinutes: 60 },
   { id: '4', name: 'Expression Orale', code: 'EO', description: 'Entretien individuel', questionCount: 3, durationMinutes: 12 },
+];
+
+export const MOCK_SERIES: Series[] = [
+  { id: 's1', moduleId: 'CE', title: 'Série 1 - Découverte', description: 'Idéal pour débuter', questionCount: 39, isPremium: false, isActive: true, lastUpdated: '2023-10-01' },
+  { id: 's2', moduleId: 'CE', title: 'Série 2 - Intermédiaire', description: 'Niveau B1-B2', questionCount: 39, isPremium: true, isActive: true, lastUpdated: '2023-10-05' },
+  { id: 's3', moduleId: 'CE', title: 'Série 3 - Avancé', description: 'Niveau C1-C2', questionCount: 39, isPremium: true, isActive: false, lastUpdated: '2023-10-10' },
+  { id: 's4', moduleId: 'CO', title: 'Série Audio 1', description: 'Dialogues du quotidien', questionCount: 39, isPremium: false, isActive: true, lastUpdated: '2023-10-02' },
+  { id: 's5', moduleId: 'CO', title: 'Série Audio 2', description: 'Interviews et radio', questionCount: 39, isPremium: true, isActive: true, lastUpdated: '2023-10-08' },
+  { id: 's6', moduleId: 'EE', title: 'Tâches d\'écriture 1', description: 'Courriels et articles', questionCount: 3, isPremium: true, isActive: true, lastUpdated: '2023-09-25' },
 ];
 
 export const MOCK_USERS: User[] = [
@@ -42,11 +54,14 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
 ];
 
 export const MOCK_QUESTIONS: Question[] = [
-  { id: 'q1', text: 'Quelle est l\'intention de l\'auteur ?', moduleId: 'CE', difficulty: 4, type: 'QCM', points: 15 },
-  { id: 'q2', text: 'Complétez la phrase suivante...', moduleId: 'CE', difficulty: 2, type: 'QCM', points: 9 },
-  { id: 'q3', text: 'Écoutez le dialogue. Où se passe la scène ?', moduleId: 'CO', difficulty: 3, type: 'AUDIO', points: 9 },
-  { id: 'q4', text: 'Décrivez cette image.', moduleId: 'EO', difficulty: 1, type: 'IMAGE', points: 3 },
-  { id: 'q5', text: 'Rédigez un courriel de réclamation.', moduleId: 'EE', difficulty: 5, type: 'QCM', points: 26 },
+  { id: 'q1', text: 'Quelle est l\'intention de l\'auteur ?', moduleId: 'CE', seriesId: 's1', difficulty: 4, type: 'QCM', points: 15 },
+  { id: 'q2', text: 'Complétez la phrase suivante...', moduleId: 'CE', seriesId: 's1', difficulty: 2, type: 'QCM', points: 9 },
+  { id: 'q3', text: 'Écoutez le dialogue. Où se passe la scène ?', moduleId: 'CO', seriesId: 's4', difficulty: 3, type: 'AUDIO', points: 9 },
+  { id: 'q4', text: 'Décrivez cette image.', moduleId: 'EO', seriesId: 's6', difficulty: 1, type: 'IMAGE', points: 3 },
+  { id: 'q5', text: 'Rédigez un courriel de réclamation.', moduleId: 'EE', seriesId: 's6', difficulty: 5, type: 'QCM', points: 26 },
+  // Adding more questions for Series 1 (CE)
+  { id: 'q6', text: 'Quel est le synonyme du mot souligné ?', moduleId: 'CE', seriesId: 's1', difficulty: 1, type: 'QCM', points: 3 },
+  { id: 'q7', text: 'Que signifie cette expression ?', moduleId: 'CE', seriesId: 's1', difficulty: 3, type: 'QCM', points: 9 },
 ];
 
 export const MOCK_PLANS: SubscriptionPlan[] = [
@@ -97,4 +112,50 @@ export const CHART_DATA_ACTIVITY = [
   { name: 'CO', users: 98 },
   { name: 'EE', users: 45 },
   { name: 'EO', users: 30 },
+];
+
+export const MOCK_CONVERSATIONS: Conversation[] = [
+  {
+    id: 'c1',
+    userId: 'u1',
+    userName: 'Jean Dupont',
+    userEmail: 'jean.d@example.com',
+    lastMessage: 'Merci pour votre réponse rapide.',
+    lastMessageTime: '10:30',
+    unreadCount: 0,
+    status: 'closed',
+    messages: [
+      { id: 'm1', text: 'Bonjour, j\'ai un problème avec mon paiement.', sender: 'user', timestamp: '10:00', read: true },
+      { id: 'm2', text: 'Bonjour Jean, quel est le souci exactement ?', sender: 'admin', timestamp: '10:15', read: true },
+      { id: 'm3', text: 'C\'est réglé, merci !', sender: 'user', timestamp: '10:30', read: true },
+      { id: 'm4', text: 'Merci pour votre réponse rapide.', sender: 'user', timestamp: '10:30', read: true },
+    ]
+  },
+  {
+    id: 'c2',
+    userId: 'u3',
+    userName: 'Ousmane Dembélé',
+    userEmail: 'ousmane@foot.com',
+    lastMessage: 'Comment puis-je changer mon mot de passe ?',
+    lastMessageTime: '09:45',
+    unreadCount: 2,
+    status: 'active',
+    messages: [
+      { id: 'm1', text: 'Bonjour l\'équipe.', sender: 'user', timestamp: '09:40', read: true },
+      { id: 'm2', text: 'Comment puis-je changer mon mot de passe ?', sender: 'user', timestamp: '09:45', read: false },
+    ]
+  },
+  {
+    id: 'c3',
+    userId: 'u5',
+    userName: 'Victor Hugo',
+    userEmail: 'v.hugo@lesmis.fr',
+    lastMessage: 'Je ne trouve pas le module EE.',
+    lastMessageTime: 'Hier',
+    unreadCount: 0,
+    status: 'active',
+    messages: [
+      { id: 'm1', text: 'Je ne trouve pas le module EE.', sender: 'user', timestamp: 'Hier', read: true },
+    ]
+  }
 ];

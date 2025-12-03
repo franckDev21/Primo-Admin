@@ -11,6 +11,7 @@ import AdminProfile from './pages/AdminProfile';
 import MediaLibrary from './pages/MediaLibrary';
 import LogsPage from './pages/Logs';
 import SettingsPage from './pages/Settings';
+import MessagesPage from './pages/Messages';
 
 // Mock Authentication Context
 const useAuth = () => {
@@ -84,6 +85,7 @@ const App: React.FC = () => {
         <Route element={<ProtectedRoute isAllowed={isAuthenticated} />}>
           <Route path="/" element={<AppLayout onLogout={logout} />}>
             <Route index element={<Dashboard />} />
+            <Route path="messages" element={<MessagesPage />} />
             <Route path="content" element={<ContentManager />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="users/:userId" element={<UserDetails />} />
