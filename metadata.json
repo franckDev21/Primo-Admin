@@ -1,0 +1,5 @@
+{
+  "name": "TCF Canada - Admin Backoffice",
+  "description": "A premium, glassy-styled administrative dashboard for the TCF Canada Simulator. Features content management for exams, user supervision, subscription tracking, and financial analytics.",
+  "requestFramePermissions": []
+}
