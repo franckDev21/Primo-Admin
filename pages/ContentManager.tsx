@@ -1,22 +1,27 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import GlassCard from '../components/GlassCard';
 import Modal from '../components/Modal';
-import { MOCK_MODULES, MOCK_QUESTIONS, MOCK_SERIES } from '../constants';
-import { Plus, Search, Filter, Edit2, Trash2, PlayCircle, Image as ImageIcon, Layers, Lock, Unlock, ArrowRight, ArrowLeft, MoreHorizontal, CheckCircle, AlertCircle, Save, Check } from 'lucide-react';
-import { ModuleType, Series, Question } from '../types';
+import { MOCK_MODULES, MOCK_QUESTIONS, MOCK_SERIES, MOCK_MEDIA } from '../constants';
+import { Plus, Search, Filter, Edit2, Trash2, PlayCircle, Image as ImageIcon, Layers, Lock, Unlock, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Save, Check, Upload, Mic, X } from 'lucide-react';
+import { ModuleType, Series, Question, MediaItem } from '../types';
 
 const ContentManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ModuleType>('CE');
   const [selectedSeriesId, setSelectedSeriesId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // State for data (using Mock as initial)
+  // State for data
   const [allQuestions, setAllQuestions] = useState<Question[]>(MOCK_QUESTIONS);
   
   // Modal States
   const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  
+  // Media Selection State
+  const [librarySelectionType, setLibrarySelectionType] = useState<'audio' | 'image' | null>(null);
+  const fileInputRefAudio = useRef<HTMLInputElement>(null);
+  const fileInputRefImage = useRef<HTMLInputElement>(null);
   
   // Form States
   const [seriesFormData, setSeriesFormData] = useState<Partial<Series>>({});
@@ -51,6 +56,7 @@ const ContentManager: React.FC = () => {
 
   const handleCreateQuestion = () => {
       setQuestionFormData({
+        id: undefined, 
         text: '',
         moduleId: activeTab,
         seriesId: selectedSeriesId || '',
@@ -58,27 +64,42 @@ const ContentManager: React.FC = () => {
         type: 'QCM',
         points: 3,
         choices: ['', '', '', ''],
-        correctAnswer: 0
+        correctAnswer: 0,
+        audioUrl: '',
+        imageUrl: ''
       });
+      setIsQuestionModalOpen(true);
+  };
+
+  const handleEditQuestion = (question: Question) => {
+      setQuestionFormData({ ...question });
       setIsQuestionModalOpen(true);
   };
 
   const handleSaveQuestion = () => {
       if (!questionFormData.text) return;
       
-      const newQuestion: Question = {
-          id: `q_${Date.now()}`,
-          text: questionFormData.text || '',
-          moduleId: activeTab,
-          seriesId: selectedSeriesId || '',
-          difficulty: questionFormData.difficulty || 1,
-          type: questionFormData.type || 'QCM',
-          points: questionFormData.points || 3,
-          choices: questionFormData.choices,
-          correctAnswer: questionFormData.correctAnswer
-      };
+      if (questionFormData.id) {
+          // Update existing
+          setAllQuestions(prev => prev.map(q => q.id === questionFormData.id ? { ...q, ...questionFormData } as Question : q));
+      } else {
+          // Create new
+          const newQuestion: Question = {
+              id: `q_${Date.now()}`,
+              text: questionFormData.text || '',
+              moduleId: activeTab,
+              seriesId: selectedSeriesId || '',
+              difficulty: questionFormData.difficulty || 1,
+              type: questionFormData.type || 'QCM',
+              points: questionFormData.points || 3,
+              choices: questionFormData.choices,
+              correctAnswer: questionFormData.correctAnswer,
+              audioUrl: questionFormData.audioUrl,
+              imageUrl: questionFormData.imageUrl
+          };
+          setAllQuestions([...allQuestions, newQuestion]);
+      }
 
-      setAllQuestions([...allQuestions, newQuestion]);
       setIsQuestionModalOpen(false);
   };
 
@@ -103,6 +124,36 @@ const ContentManager: React.FC = () => {
       if (diff <= 2) return 'bg-emerald-500/10 text-emerald-500';
       if (diff <= 4) return 'bg-amber-500/10 text-amber-500';
       return 'bg-red-500/10 text-red-500';
+  };
+
+  // Media Handlers
+  const handleLocalUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'audio' | 'image') => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const objectUrl = URL.createObjectURL(file);
+          if (type === 'audio') {
+              setQuestionFormData({ ...questionFormData, audioUrl: objectUrl });
+          } else {
+              setQuestionFormData({ ...questionFormData, imageUrl: objectUrl });
+          }
+      }
+  };
+
+  const handleLibrarySelect = (item: MediaItem) => {
+      if (librarySelectionType === 'audio') {
+          setQuestionFormData({ ...questionFormData, audioUrl: item.url }); // In real app, use ID or URL
+      } else if (librarySelectionType === 'image') {
+          setQuestionFormData({ ...questionFormData, imageUrl: item.url });
+      }
+      setLibrarySelectionType(null);
+  };
+
+  const clearMedia = (type: 'audio' | 'image') => {
+      if (type === 'audio') {
+          setQuestionFormData({ ...questionFormData, audioUrl: undefined });
+      } else {
+          setQuestionFormData({ ...questionFormData, imageUrl: undefined });
+      }
   };
 
   return (
@@ -312,7 +363,9 @@ const ContentManager: React.FC = () => {
                                 <div className="col-span-6">
                                     <p className="text-slate-900 dark:text-slate-200 text-sm truncate pr-4 font-medium">{question.text}</p>
                                     <div className="flex gap-2 mt-1">
-                                         <span className="text-[10px] text-slate-500">{question.id}</span>
+                                        <span className="text-[10px] text-slate-500 font-mono">{question.id}</span>
+                                        {question.audioUrl && <span className="text-[10px] bg-amber-100 dark:bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded flex items-center gap-1"><Mic size={10} /> Audio</span>}
+                                        {question.imageUrl && <span className="text-[10px] bg-pink-100 dark:bg-pink-500/10 text-pink-600 px-1.5 py-0.5 rounded flex items-center gap-1"><ImageIcon size={10} /> Image</span>}
                                     </div>
                                 </div>
                                 <div className="col-span-2">
@@ -324,6 +377,7 @@ const ContentManager: React.FC = () => {
                                         }`}>
                                             {question.type === 'AUDIO' && <PlayCircle size={10} />}
                                             {question.type === 'IMAGE' && <ImageIcon size={10} />}
+                                            {question.type === 'QCM' && <CheckCircle size={10} />}
                                             {question.type}
                                         </span>
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${getDifficultyColor(question.difficulty)}`}>
@@ -333,7 +387,10 @@ const ContentManager: React.FC = () => {
                                 </div>
                                 <div className="col-span-1 text-slate-600 dark:text-slate-400 text-sm font-bold">{question.points}</div>
                                 <div className="col-span-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-md transition-colors">
+                                    <button 
+                                        onClick={() => handleEditQuestion(question)}
+                                        className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-md transition-colors"
+                                    >
                                         <Edit2 size={16} />
                                     </button>
                                     <button className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors">
@@ -449,13 +506,13 @@ const ContentManager: React.FC = () => {
           </div>
       </Modal>
 
-      {/* MODAL: CREATE QUESTION */}
+      {/* MODAL: CREATE/EDIT QUESTION */}
       <Modal
          isOpen={isQuestionModalOpen}
          onClose={() => setIsQuestionModalOpen(false)}
-         title="Ajouter une question"
+         title={questionFormData.id ? "Modifier la question" : "Ajouter une question"}
       >
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
               {/* Question Text */}
               <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Intitulé de la question</label>
@@ -467,18 +524,107 @@ const ContentManager: React.FC = () => {
                   />
               </div>
 
+              {/* Media Attachments Section */}
+              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-white/5">
+                 <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3">Fichiers joints (Optionnel)</h4>
+                 <div className="grid grid-cols-2 gap-4">
+                    {/* Audio Section */}
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase flex items-center gap-1">
+                             <Mic size={12} /> Audio
+                        </label>
+                        {questionFormData.audioUrl ? (
+                            <div className="relative bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3 flex flex-col items-center text-center">
+                                <button 
+                                    onClick={() => clearMedia('audio')}
+                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                >
+                                    <X size={12} />
+                                </button>
+                                <PlayCircle size={24} className="text-amber-500 mb-2" />
+                                <span className="text-xs text-amber-700 dark:text-amber-400 font-medium truncate w-full">Fichier audio joint</span>
+                                <audio controls src={questionFormData.audioUrl} className="w-full mt-2 h-8" />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <input 
+                                    type="file" 
+                                    accept="audio/*"
+                                    ref={fileInputRefAudio}
+                                    className="hidden"
+                                    onChange={(e) => handleLocalUpload(e, 'audio')}
+                                />
+                                <button 
+                                    onClick={() => fileInputRefAudio.current?.click()}
+                                    className="w-full py-2 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 hover:border-amber-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/5 transition-all text-xs font-medium flex items-center justify-center gap-2"
+                                >
+                                    <Upload size={14} /> Upload Local
+                                </button>
+                                <button 
+                                    onClick={() => setLibrarySelectionType('audio')}
+                                    className="w-full py-2 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-amber-500 hover:text-white transition-all text-xs font-medium flex items-center justify-center gap-2"
+                                >
+                                    <Layers size={14} /> Médiathèque
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Image Section */}
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase flex items-center gap-1">
+                             <ImageIcon size={12} /> Image
+                        </label>
+                         {questionFormData.imageUrl ? (
+                            <div className="relative bg-pink-50 dark:bg-pink-500/10 border border-pink-200 dark:border-pink-500/20 rounded-lg p-2 flex flex-col items-center">
+                                <button 
+                                    onClick={() => clearMedia('image')}
+                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md z-10"
+                                >
+                                    <X size={12} />
+                                </button>
+                                <img src={questionFormData.imageUrl} alt="Preview" className="w-full h-24 object-cover rounded-md mb-1" />
+                                <span className="text-xs text-pink-700 dark:text-pink-400 font-medium truncate w-full text-center">Image jointe</span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    ref={fileInputRefImage}
+                                    className="hidden"
+                                    onChange={(e) => handleLocalUpload(e, 'image')}
+                                />
+                                <button 
+                                    onClick={() => fileInputRefImage.current?.click()}
+                                    className="w-full py-2 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 hover:border-pink-500 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/5 transition-all text-xs font-medium flex items-center justify-center gap-2"
+                                >
+                                    <Upload size={14} /> Upload Local
+                                </button>
+                                <button 
+                                    onClick={() => setLibrarySelectionType('image')}
+                                    className="w-full py-2 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-pink-500 hover:text-white transition-all text-xs font-medium flex items-center justify-center gap-2"
+                                >
+                                    <Layers size={14} /> Médiathèque
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                 </div>
+              </div>
+
               {/* Settings Row */}
               <div className="grid grid-cols-3 gap-3">
                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Type</label>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Catégorie</label>
                     <select 
                         value={questionFormData.type}
                         onChange={(e) => setQuestionFormData({...questionFormData, type: e.target.value as any})}
                         className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 rounded-lg p-2 text-sm text-slate-900 dark:text-white outline-none"
                     >
-                        <option value="QCM">QCM</option>
-                        <option value="AUDIO">Audio</option>
-                        <option value="IMAGE">Image</option>
+                        <option value="QCM">QCM Standard</option>
+                        <option value="AUDIO">Compréhension Orale</option>
+                        <option value="IMAGE">Expression / Image</option>
                     </select>
                  </div>
                  <div>
@@ -553,9 +699,48 @@ const ContentManager: React.FC = () => {
                     onClick={handleSaveQuestion} 
                     className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 flex items-center gap-2"
                    >
-                    <Save size={16} /> Enregistrer Question
+                    <Save size={16} /> {questionFormData.id ? 'Mettre à jour' : 'Enregistrer'}
                    </button>
               </div>
+          </div>
+      </Modal>
+
+      {/* MODAL: MEDIA LIBRARY SELECTION */}
+      <Modal 
+          isOpen={!!librarySelectionType} 
+          onClose={() => setLibrarySelectionType(null)} 
+          title={`Sélectionner ${librarySelectionType === 'audio' ? 'un Audio' : 'une Image'} depuis la bibliothèque`}
+      >
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-1">
+             {MOCK_MEDIA.filter(m => m.type === librarySelectionType).map(media => (
+                 <div 
+                    key={media.id} 
+                    onClick={() => handleLibrarySelect(media)}
+                    className="cursor-pointer border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden hover:border-indigo-500 dark:hover:border-indigo-500 transition-all hover:shadow-lg group"
+                 >
+                     <div className="aspect-square bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
+                         {media.type === 'image' ? (
+                             <img src={media.url} alt={media.name} className="w-full h-full object-cover" />
+                         ) : (
+                             <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                                 <PlayCircle size={24} />
+                             </div>
+                         )}
+                         <div className="absolute inset-0 bg-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <span className="bg-white text-indigo-600 px-2 py-1 rounded text-xs font-bold shadow">Sélectionner</span>
+                         </div>
+                     </div>
+                     <div className="p-2 bg-white dark:bg-slate-900">
+                         <p className="text-xs font-medium truncate text-slate-700 dark:text-slate-200">{media.name}</p>
+                         <p className="text-[10px] text-slate-400">{media.size}</p>
+                     </div>
+                 </div>
+             ))}
+             {MOCK_MEDIA.filter(m => m.type === librarySelectionType).length === 0 && (
+                 <div className="col-span-3 py-8 text-center text-slate-400 text-sm">
+                     Aucun fichier de ce type trouvé dans la médiathèque.
+                 </div>
+             )}
           </div>
       </Modal>
     </div>

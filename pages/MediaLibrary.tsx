@@ -1,6 +1,9 @@
+
 import React, { useState, useRef } from 'react';
 import GlassCard from '../components/GlassCard';
 import Modal from '../components/Modal';
+import { MOCK_MEDIA } from '../constants'; // Use centralized media
+import { MediaType, MediaItem } from '../types';
 import { 
   FileAudio, 
   Image as ImageIcon, 
@@ -8,77 +11,14 @@ import {
   Upload, 
   Search, 
   Filter, 
-  MoreVertical, 
   Eye, 
   Download, 
   Trash2, 
-  X,
   PlayCircle
 } from 'lucide-react';
 
-type MediaType = 'image' | 'audio' | 'document';
-
-interface MediaItem {
-  id: string;
-  name: string;
-  type: MediaType;
-  url: string;
-  size: string;
-  date: string;
-  dimensions?: string; // Only for images
-  duration?: string;   // Only for audio
-}
-
-// Mock initial data
-const INITIAL_MEDIA: MediaItem[] = [
-  { 
-    id: 'm1', 
-    name: 'logo-tcf-canada.png', 
-    type: 'image', 
-    url: 'https://placehold.co/600x400/indigo/white?text=TCF+Logo', 
-    size: '1.2 MB', 
-    date: '2023-10-24',
-    dimensions: '600x400'
-  },
-  { 
-    id: 'm2', 
-    name: 'exercice-co-s1.mp3', 
-    type: 'audio', 
-    url: '#', // In a real app, this would be a real audio URL
-    size: '4.5 MB', 
-    date: '2023-10-25',
-    duration: '02:45'
-  },
-  { 
-    id: 'm3', 
-    name: 'guide-candidat-2024.pdf', 
-    type: 'document', 
-    url: '#', 
-    size: '2.8 MB', 
-    date: '2023-10-20'
-  },
-  { 
-    id: 'm4', 
-    name: 'tache-3-expression.jpg', 
-    type: 'image', 
-    url: 'https://placehold.co/800x600/1e293b/white?text=Tache+3', 
-    size: '3.1 MB', 
-    date: '2023-10-22',
-    dimensions: '800x600'
-  },
-  { 
-    id: 'm5', 
-    name: 'intro-module-ce.mp3', 
-    type: 'audio', 
-    url: '#', 
-    size: '1.2 MB', 
-    date: '2023-10-26',
-    duration: '00:45'
-  },
-];
-
 const MediaLibrary: React.FC = () => {
-  const [items, setItems] = useState<MediaItem[]>(INITIAL_MEDIA);
+  const [items, setItems] = useState<MediaItem[]>(MOCK_MEDIA);
   const [activeFilter, setActiveFilter] = useState<'all' | MediaType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -103,19 +43,20 @@ const MediaLibrary: React.FC = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      // Simulation of upload
       const newFiles: MediaItem[] = Array.from(files).map((file: File, idx) => {
         const type: MediaType = file.type.startsWith('image/') 
           ? 'image' 
           : file.type.startsWith('audio/') 
             ? 'audio' 
             : 'document';
+        
+        const objectUrl = URL.createObjectURL(file);
             
         return {
           id: `new_${Date.now()}_${idx}`,
           name: file.name,
           type: type,
-          url: type === 'image' ? URL.createObjectURL(file) : '#',
+          url: objectUrl,
           size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
           date: new Date().toISOString().split('T')[0],
         };
@@ -124,6 +65,19 @@ const MediaLibrary: React.FC = () => {
       setItems([...newFiles, ...items]);
       setIsUploadModalOpen(false);
     }
+  };
+
+  const handleDownload = (item: MediaItem) => {
+    if (!item.url || item.url === '#') {
+        alert("Fichier exemple (mock). Veuillez uploader un vrai fichier pour tester le téléchargement.");
+        return;
+    }
+    const link = document.createElement('a');
+    link.href = item.url;
+    link.download = item.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const deleteItem = (id: string) => {
@@ -236,11 +190,21 @@ const MediaLibrary: React.FC = () => {
                     >
                       <Eye size={18} />
                     </button>
-                    <button className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-colors" title="Télécharger">
+                    <button 
+                      onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(item);
+                      }}
+                      className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-colors" 
+                      title="Télécharger"
+                    >
                       <Download size={18} />
                     </button>
                     <button 
-                      onClick={() => deleteItem(item.id)}
+                      onClick={(e) => {
+                          e.stopPropagation();
+                          deleteItem(item.id);
+                      }}
                       className="p-2 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded-full backdrop-blur-md transition-colors"
                       title="Supprimer"
                     >
@@ -316,27 +280,39 @@ const MediaLibrary: React.FC = () => {
                    <PlayCircle size={48} />
                  </div>
                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{previewItem.name}</h3>
-                 <p className="text-sm text-slate-500 mb-6">Durée: {previewItem.duration || '--:--'}</p>
-                 <audio controls className="w-full max-w-md">
-                   <source src={previewItem.url} type="audio/mpeg" />
+                 <p className="text-sm text-slate-500 mb-6">Fichier Audio</p>
+                 <audio controls className="w-full max-w-md" src={previewItem.url}>
                    Votre navigateur ne supporte pas l'élément audio.
                  </audio>
                </div>
              )}
 
              {previewItem.type === 'document' && (
-                <div className="w-full py-12 flex flex-col items-center text-center">
-                    <FileText size={64} className="text-slate-400 mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-xs">
-                      Ce document ne peut pas être prévisualisé directement. Veuillez le télécharger pour le consulter.
-                    </p>
-                    <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
-                      <Download size={18} /> Télécharger le PDF
-                    </button>
+                <div className="w-full flex flex-col items-center text-center">
+                    {previewItem.name.toLowerCase().endsWith('.pdf') ? (
+                       <iframe src={previewItem.url} className="w-full h-[60vh] rounded-lg border border-slate-200 dark:border-white/10 mb-4" title="PDF Preview"></iframe>
+                    ) : (
+                        <div className="py-12">
+                            <FileText size={64} className="text-slate-400 mb-4 mx-auto" />
+                            <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-xs mx-auto">
+                            Aperçu non disponible pour ce type de fichier.
+                            </p>
+                        </div>
+                    )}
                 </div>
              )}
 
-             <div className="w-full mt-6 grid grid-cols-2 gap-4 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-white/10 pt-4">
+             {/* Download Button in Modal */}
+             <div className="w-full mt-4 flex justify-center">
+                <button 
+                  onClick={() => handleDownload(previewItem)}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-500/30"
+                >
+                  <Download size={18} /> Télécharger le fichier
+                </button>
+             </div>
+
+             <div className="w-full mt-6 grid grid-cols-2 gap-4 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-white/10 pt-4 text-left">
                 <div>
                    <span className="block text-xs uppercase font-bold text-slate-400 dark:text-slate-500 mb-1">Taille</span>
                    {previewItem.size}

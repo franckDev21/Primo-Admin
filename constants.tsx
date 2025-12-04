@@ -9,7 +9,7 @@ import {
   Activity,
   MessageSquare
 } from 'lucide-react';
-import { TCFModule, User, Transaction, Question, SubscriptionPlan, Conversation, Series } from './types';
+import { TCFModule, User, Transaction, Question, SubscriptionPlan, Conversation, Series, MediaItem } from './types';
 
 export const NAV_ITEMS = [
   { label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, path: '/' },
@@ -38,19 +38,51 @@ export const MOCK_SERIES: Series[] = [
   { id: 's6', moduleId: 'EE', title: 'Tâches d\'écriture 1', description: 'Courriels et articles', questionCount: 3, isPremium: true, isActive: true, lastUpdated: '2023-09-25' },
 ];
 
-export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Jean Dupont', email: 'jean.d@example.com', status: 'active', subscription: 'monthly', lastLogin: '2023-10-25', progress: 65 },
-  { id: 'u2', name: 'Marie Curie', email: 'm.curie@science.fr', status: 'active', subscription: 'annual', lastLogin: '2023-10-24', progress: 88 },
-  { id: 'u3', name: 'Ousmane Dembélé', email: 'ousmane@foot.com', status: 'inactive', subscription: 'free', lastLogin: '2023-10-20', progress: 12 },
-  { id: 'u4', name: 'Sophie Marceau', email: 'sophie@actor.fr', status: 'banned', subscription: 'free', lastLogin: '2023-09-15', progress: 45 },
-  { id: 'u5', name: 'Victor Hugo', email: 'v.hugo@lesmis.fr', status: 'active', subscription: 'weekly', lastLogin: '2023-10-26', progress: 30 },
-];
-
-export const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: 'tx_1', userId: 'u1', userName: 'Jean Dupont', amount: 15000, currency: 'XOF', date: '2023-10-25', status: 'success', method: 'OM' },
-  { id: 'tx_2', userId: 'u5', userName: 'Victor Hugo', amount: 5000, currency: 'XOF', date: '2023-10-24', status: 'success', method: 'MOMO' },
-  { id: 'tx_3', userId: 'u3', userName: 'Ousmane Dembélé', amount: 5000, currency: 'XOF', date: '2023-10-23', status: 'failed', method: 'VISA' },
-  { id: 'tx_4', userId: 'u2', userName: 'Marie Curie', amount: 45000, currency: 'XOF', date: '2023-10-20', status: 'success', method: 'VISA' },
+export const MOCK_MEDIA: MediaItem[] = [
+  { 
+    id: 'm1', 
+    name: 'logo-tcf-canada.png', 
+    type: 'image', 
+    url: 'https://placehold.co/600x400/indigo/white?text=TCF+Logo', 
+    size: '1.2 MB', 
+    date: '2023-10-24',
+    dimensions: '600x400'
+  },
+  { 
+    id: 'm2', 
+    name: 'exercice-co-s1.mp3', 
+    type: 'audio', 
+    url: '', // Mock url
+    size: '4.5 MB', 
+    date: '2023-10-25',
+    duration: '02:45'
+  },
+  { 
+    id: 'm3', 
+    name: 'guide-candidat-2024.pdf', 
+    type: 'document', 
+    url: '', 
+    size: '2.8 MB', 
+    date: '2023-10-20'
+  },
+  { 
+    id: 'm4', 
+    name: 'tache-3-expression.jpg', 
+    type: 'image', 
+    url: 'https://placehold.co/800x600/1e293b/white?text=Tache+3', 
+    size: '3.1 MB', 
+    date: '2023-10-22',
+    dimensions: '800x600'
+  },
+  { 
+    id: 'm5', 
+    name: 'intro-module-ce.mp3', 
+    type: 'audio', 
+    url: '', 
+    size: '1.2 MB', 
+    date: '2023-10-26',
+    duration: '00:45'
+  },
 ];
 
 export const MOCK_QUESTIONS: Question[] = [
@@ -63,7 +95,8 @@ export const MOCK_QUESTIONS: Question[] = [
     type: 'QCM', 
     points: 15,
     choices: ['Informer', 'Convaincre', 'Divertir', 'Critiquer'],
-    correctAnswer: 1
+    correctAnswer: 1,
+    imageUrl: 'https://placehold.co/600x300/indigo/white?text=Question+Context'
   },
   { 
     id: 'q2', 
@@ -85,7 +118,8 @@ export const MOCK_QUESTIONS: Question[] = [
     type: 'AUDIO', 
     points: 9,
     choices: ['À la gare', 'Au restaurant', 'À la banque', 'Au cinéma'],
-    correctAnswer: 2
+    correctAnswer: 2,
+    audioUrl: 'mock_audio.mp3'
   },
   { 
     id: 'q4', 
@@ -96,7 +130,8 @@ export const MOCK_QUESTIONS: Question[] = [
     type: 'IMAGE', 
     points: 3,
     choices: [],
-    correctAnswer: 0
+    correctAnswer: 0,
+    imageUrl: 'https://placehold.co/800x600/1e293b/white?text=EO+Task'
   },
   { 
     id: 'q5', 
@@ -120,17 +155,21 @@ export const MOCK_QUESTIONS: Question[] = [
     choices: ['Grand', 'Petit', 'Rapide', 'Lent'],
     correctAnswer: 0
   },
-  { 
-    id: 'q7', 
-    text: 'Que signifie cette expression ?', 
-    moduleId: 'CE', 
-    seriesId: 's1', 
-    difficulty: 3, 
-    type: 'QCM', 
-    points: 9,
-    choices: ['Être heureux', 'Être triste', 'Être en colère', 'Être fatigué'],
-    correctAnswer: 3
-  },
+];
+
+export const MOCK_USERS: User[] = [
+  { id: 'u1', name: 'Jean Dupont', email: 'jean.d@example.com', status: 'active', subscription: 'monthly', lastLogin: '2023-10-25', progress: 65 },
+  { id: 'u2', name: 'Marie Curie', email: 'm.curie@science.fr', status: 'active', subscription: 'annual', lastLogin: '2023-10-24', progress: 88 },
+  { id: 'u3', name: 'Ousmane Dembélé', email: 'ousmane@foot.com', status: 'inactive', subscription: 'free', lastLogin: '2023-10-20', progress: 12 },
+  { id: 'u4', name: 'Sophie Marceau', email: 'sophie@actor.fr', status: 'banned', subscription: 'free', lastLogin: '2023-09-15', progress: 45 },
+  { id: 'u5', name: 'Victor Hugo', email: 'v.hugo@lesmis.fr', status: 'active', subscription: 'weekly', lastLogin: '2023-10-26', progress: 30 },
+];
+
+export const MOCK_TRANSACTIONS: Transaction[] = [
+  { id: 'tx_1', userId: 'u1', userName: 'Jean Dupont', amount: 15000, currency: 'XOF', date: '2023-10-25', status: 'success', method: 'OM' },
+  { id: 'tx_2', userId: 'u5', userName: 'Victor Hugo', amount: 5000, currency: 'XOF', date: '2023-10-24', status: 'success', method: 'MOMO' },
+  { id: 'tx_3', userId: 'u3', userName: 'Ousmane Dembélé', amount: 5000, currency: 'XOF', date: '2023-10-23', status: 'failed', method: 'VISA' },
+  { id: 'tx_4', userId: 'u2', userName: 'Marie Curie', amount: 45000, currency: 'XOF', date: '2023-10-20', status: 'success', method: 'VISA' },
 ];
 
 export const MOCK_PLANS: SubscriptionPlan[] = [

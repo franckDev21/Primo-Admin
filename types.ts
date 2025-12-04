@@ -25,12 +25,28 @@ export interface Question {
   id: string;
   text: string;
   moduleId: ModuleType;
-  seriesId: string; // Linked to a specific series
+  seriesId: string;
   difficulty: number; // 1-6
-  type: 'QCM' | 'AUDIO' | 'IMAGE';
+  type: 'QCM' | 'AUDIO' | 'IMAGE'; // Primary categorization
   points: 3 | 9 | 15 | 21 | 26 | 33;
-  choices?: string[]; // Array of 4 choices
-  correctAnswer?: number; // Index of the correct choice (0-3)
+  choices?: string[];
+  correctAnswer?: number;
+  // New Media Fields
+  audioUrl?: string;
+  imageUrl?: string;
+}
+
+export type MediaType = 'image' | 'audio' | 'document';
+
+export interface MediaItem {
+  id: string;
+  name: string;
+  type: MediaType;
+  url: string;
+  size: string;
+  date: string;
+  dimensions?: string; // Only for images
+  duration?: string;   // Only for audio
 }
 
 export interface User {
@@ -69,7 +85,7 @@ export interface SubscriptionPlan {
   duration: 'daily' | 'weekly' | 'monthly' | 'annual';
   features: string[];
   active: boolean;
-  highlight?: boolean; // For "Popular" tag in front office
+  highlight?: boolean;
 }
 
 export interface ChatMessage {
